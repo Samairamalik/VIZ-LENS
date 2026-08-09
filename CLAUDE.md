@@ -70,7 +70,8 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## Project Context: VIZ-LENS
 
 Educational tool: generates interactive HTML5 visualizations of algorithms
-(Concept Lens) and CSV dashboards (Data Lens). Next.js 14 in frontend/,
+(Concept Lens) and CSV dashboards (Data Lens). Next.js 16 (params is a
+Promise in client pages — use useParams()) in frontend/,
 Express in backend/server.js, Gemini 3 Flash via @google/genai.
 Deployed: Vercel (frontend) + Render free tier (backend, ~512MB RAM).
 Supabase (Postgres + pgvector) added: tables viz_cache, share_opens,

@@ -2,7 +2,7 @@
 PRD · TRD · App Flow · UI/UX Brief · Backend Schema · Implementation Plan — for each workstream.
 
 Conventions used throughout:
-- Stack today: Next.js 14 frontend (Vercel), Express backend (Render), Gemini 3 Flash via `@google/genai`, Chart.js, Monaco. No database yet.
+- Stack today: Next.js 16 (params is a Promise in client pages — use useParams()) frontend (Vercel), Express backend (Render), Gemini 3 Flash via `@google/genai`, Chart.js, Monaco. No database yet.
 - New shared infra introduced in Workstream B: Supabase (Postgres + pgvector). Project uses new-format keys: `publishable` (browser, obeys RLS) and `secret` `sb_secret_...` (backend only, bypasses RLS — this is `SUPABASE_SERVICE_KEY`). All tables run RLS-enabled with zero policies (deny-all via public API; backend unaffected).
 - **Model routing policy (free tier, decided Aug 9):** Gemini 3 Flash for viz generation + repair only; Gemini 3.1 Flash-Lite for all structured-JSON tasks (quiz, judge, recap, Data Lens narration, Phase 2 classifier); a separate Gemini embedding model for cache embeddings (own quota). Gemini Pro is paid-only as of 2026 — never assume it in designs. Free-tier limits are per Google Cloud project, not per key; repair paths must use exponential backoff on 429s.
 - Optional resilience (post-Phase 1): fallback chain in `generateWithRetry` — viz generation → OpenRouter Qwen3 Coder (`:free`, 1,000 RPD after one-time $10 credit), small JSON tasks → Groq. All OpenAI-compatible; the verifier gates fallback output like any other.
@@ -115,7 +115,7 @@ create table generation_failures (
 **Cache lookup (inside `/api/generate`, before Gemini):**
 1. Normalize query (trim, lowercase, collapse whitespace).
 2. Exact-match fast path: SQL lookup on `query_normalized` + `prompt_version`.
-3. Semantic path: embed query (Gemini `text-embedding-004`, 768-d), pgvector cosine search among rows with same `prompt_version`; accept if similarity ≥ 0.90 (tune later; log 0.80–0.90 as near-misses, do NOT serve).
+3. Semantic path: embed query (Gemini `gemini-embedding-001`, 768 dims via outputDimensionality), pgvector cosine search among rows with same `prompt_version`; accept if similarity ≥ 0.90 (tune later; log 0.80–0.90 as near-misses, do NOT serve).
 4. Miss → generate → verify (Workstream A) → insert only if `verified` → respond.
 
 **Key decisions.**
